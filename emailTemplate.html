@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>MedSmart — {{title}}</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        @media only screen and (max-width:600px) {
+            .outer {
+                padding: 16px !important;
+            }
+
+            .card {
+                border-radius: 16px !important;
+            }
+
+            .header-inner {
+                padding: 32px 20px 28px !important;
+            }
+
+            .body-inner {
+                padding: 24px 20px !important;
+            }
+
+            .footer-inner {
+                padding: 20px !important;
+            }
+
+            .h-title {
+                font-size: 22px !important;
+            }
+
+            .info-cell {
+                padding: 12px 14px !important;
+            }
+
+            .msg-cell {
+                padding: 16px 18px !important;
+            }
+        }
+    </style>
+</head>
+
+<body
+    style="margin:0;padding:0;background:#F0F4FA;font-family:'Inter','Segoe UI',Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;">
+
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" class="outer"
+        style="background:#F0F4FA;padding:40px 16px;">
+        <tr>
+            <td align="center">
+
+                <!-- ═══════════════════ CARD ═══════════════════ -->
+                <table class="card" width="600" cellpadding="0" cellspacing="0" border="0"
+                    style="max-width:600px;width:100%;border-radius:20px;overflow:hidden;box-shadow:0 8px 40px rgba(15,27,60,0.14);">
+
+                    <!-- ── TOP ACCENT BAR ── -->
+                    <tr>
+                        <td height="5"
+                            style="background:linear-gradient(90deg,#4F8EF7 0%,#6C63FF 50%,#48C9B0 100%);font-size:0;line-height:0;">
+                            &nbsp;</td>
+                    </tr>
+
+                    <!-- ── HEADER ── -->
+                    <tr>
+                        <td class="header-inner" align="center" style="background:#0D1B42;padding:40px 36px 32px;">
+
+                            <!-- Logo pill -->
+                            <table cellpadding="0" cellspacing="0" border="0" style="margin:0 auto 28px;">
+                                <tr>
+                                    <td
+                                        style="border:1px solid rgba(79,142,247,0.35);border-radius:100px;padding:6px 20px;background:rgba(79,142,247,0.08);">
+                                        <span style="color:#7AAEF7;font-size:10px;font-weight:700;letter-spacing:4px;text-transform:uppercase;
+                         font-family:'Inter','Segoe UI',sans-serif;">
+                                            MEDSMART&nbsp;&nbsp;|&nbsp;&nbsp;SYSTÈME MÉDICAL
+                                        </span>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Status icon circle -->
+                            <table cellpadding="0" cellspacing="0" border="0" style="margin:0 auto 20px;">
+                                <tr>
+                                    <td align="center" width="72" height="72" style="width:72px;height:72px;border-radius:50%;
+                   background:{{icon_bg}};
+                   font-size:11px;font-weight:800;letter-spacing:1.5px;
+                   color:#FFFFFF;text-align:center;vertical-align:middle;
+                   font-family:'Inter','Segoe UI',sans-serif;
+                   box-shadow:0 0 0 8px rgba(255,255,255,0.06);">
+                                        {{status_short}}
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <h1 class="h-title" style="margin:0 0 10px;color:#FFFFFF;font-size:24px;font-weight:800;
+               letter-spacing:-0.5px;line-height:1.2;font-family:'Inter','Segoe UI',sans-serif;">
+                                {{title}}
+                            </h1>
+                            <p
+                                style="margin:0;color:#5B78B5;font-size:13px;line-height:1.6;font-family:'Inter','Segoe UI',sans-serif;">
+                                Distributeur de Médicament Intelligent &mdash; Notification Automatique
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- ── STATUS RIBBON ── -->
+                    <tr>
+                        <td style="background:{{alert_bg}};border-left:4px solid {{alert_border}};padding:16px 28px;">
+                            <p style="margin:0;color:{{alert_text}};font-size:14px;font-weight:700;
+                line-height:1.5;font-family:'Inter','Segoe UI',sans-serif;">
+                                {{message}}
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- ── BODY ── -->
+                    <tr>
+                        <td class="body-inner" style="background:#FFFFFF;padding:32px 32px 24px;">
+
+                            <!-- Section label -->
+                            <p style="margin:0 0 16px;font-size:10px;font-weight:700;
+                color:#A0AEC0;letter-spacing:2px;text-transform:uppercase;
+                font-family:'Inter','Segoe UI',sans-serif;">
+                                Détail de l&rsquo;événement
+                            </p>
+
+                            <!-- Info table -->
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0"
+                                style="border:1px solid #E8EEF6;border-radius:12px;overflow:hidden;">
+
+                                <!-- Date -->
+                                <tr style="background:#F8FAFD;">
+                                    <td class="info-cell"
+                                        style="padding:14px 20px;width:38%;border-bottom:1px solid #E8EEF6;vertical-align:middle;">
+                                        <span style="font-size:10px;font-weight:700;color:#A0AEC0;letter-spacing:1.5px;
+                         text-transform:uppercase;font-family:'Inter','Segoe UI',sans-serif;">
+                                            Date
+                                        </span>
+                                    </td>
+                                    <td class="info-cell"
+                                        style="padding:14px 20px;border-bottom:1px solid #E8EEF6;vertical-align:middle;">
+                                        <span style="font-size:14px;font-weight:700;color:#1A2647;
+                         font-family:'Inter','Segoe UI',sans-serif;">
+                                            {{date}}
+                                        </span>
+                                    </td>
+                                </tr>
+
+                                <!-- Heure -->
+                                <tr style="background:#FFFFFF;">
+                                    <td class="info-cell"
+                                        style="padding:14px 20px;border-bottom:1px solid #E8EEF6;vertical-align:middle;">
+                                        <span style="font-size:10px;font-weight:700;color:#A0AEC0;letter-spacing:1.5px;
+                         text-transform:uppercase;font-family:'Inter','Segoe UI',sans-serif;">
+                                            Heure
+                                        </span>
+                                    </td>
+                                    <td class="info-cell"
+                                        style="padding:14px 20px;border-bottom:1px solid #E8EEF6;vertical-align:middle;">
+                                        <span style="font-size:14px;font-weight:700;color:#1A2647;
+                         font-family:'Inter','Segoe UI',sans-serif;">
+                                            {{time}}
+                                        </span>
+                                    </td>
+                                </tr>
+
+                                <!-- Statut -->
+                                <tr style="background:#F8FAFD;">
+                                    <td class="info-cell"
+                                        style="padding:14px 20px;border-bottom:1px solid #E8EEF6;vertical-align:middle;">
+                                        <span style="font-size:10px;font-weight:700;color:#A0AEC0;letter-spacing:1.5px;
+                         text-transform:uppercase;font-family:'Inter','Segoe UI',sans-serif;">
+                                            Statut
+                                        </span>
+                                    </td>
+                                    <td class="info-cell"
+                                        style="padding:14px 20px;border-bottom:1px solid #E8EEF6;vertical-align:middle;">
+                                        <table cellpadding="0" cellspacing="0" border="0">
+                                            <tr>
+                                                <td
+                                                    style="background:{{status_bg}};border-radius:6px;padding:5px 16px;">
+                                                    <span style="font-size:11px;font-weight:800;color:{{status_color}};
+                               letter-spacing:1.5px;text-transform:uppercase;
+                               font-family:'Inter','Segoe UI',sans-serif;">
+                                                        {{status}}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+
+                                <!-- Compartiment -->
+                                <tr style="background:#FFFFFF;">
+                                    <td class="info-cell"
+                                        style="padding:14px 20px;border-bottom:1px solid #E8EEF6;vertical-align:middle;">
+                                        <span style="font-size:10px;font-weight:700;color:#A0AEC0;letter-spacing:1.5px;
+                         text-transform:uppercase;font-family:'Inter','Segoe UI',sans-serif;">
+                                            Compartiment
+                                        </span>
+                                    </td>
+                                    <td class="info-cell"
+                                        style="padding:14px 20px;border-bottom:1px solid #E8EEF6;vertical-align:middle;">
+                                        <span style="font-size:14px;font-weight:700;color:#1A2647;
+                         font-family:'Inter','Segoe UI',sans-serif;">
+                                            {{compartiment}}
+                                        </span>
+                                    </td>
+                                </tr>
+
+                                <!-- Patient -->
+                                <tr style="background:#F8FAFD;">
+                                    <td class="info-cell" style="padding:14px 20px;vertical-align:middle;">
+                                        <span style="font-size:10px;font-weight:700;color:#A0AEC0;letter-spacing:1.5px;
+                         text-transform:uppercase;font-family:'Inter','Segoe UI',sans-serif;">
+                                            Patient
+                                        </span>
+                                    </td>
+                                    <td class="info-cell" style="padding:14px 20px;vertical-align:middle;">
+                                        <span style="font-size:14px;font-weight:700;color:#1A2647;
+                         font-family:'Inter','Segoe UI',sans-serif;">
+                                            {{patient_name}}
+                                        </span>
+                                    </td>
+                                </tr>
+
+                            </table>
+
+                            <!-- Note box -->
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:20px;">
+                                <tr>
+                                    <td class="msg-cell" style="background:linear-gradient(135deg,#FFF8F0,#FFFAF4);
+                   border:1px solid #FDDCB5;border-radius:10px;padding:16px 20px;">
+                                        <p style="margin:0 0 4px;font-size:10px;font-weight:800;
+                      color:#B45309;letter-spacing:2px;text-transform:uppercase;
+                      font-family:'Inter','Segoe UI',sans-serif;">
+                                            Note
+                                        </p>
+                                        <p style="margin:0;font-size:13px;color:#78350F;line-height:1.7;
+                      font-family:'Inter','Segoe UI',sans-serif;">
+                                            {{note}}
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- CTA button -->
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:24px;">
+                                <tr>
+                                    <td align="center">
+                                        <table cellpadding="0" cellspacing="0" border="0">
+                                            <tr>
+                                                <td style="background:linear-gradient(135deg,#4F8EF7,#6C63FF);
+                           border-radius:10px;padding:0;">
+                                                    <a href="#" style="display:inline-block;padding:13px 32px;color:#FFFFFF;
+                           font-size:13px;font-weight:700;text-decoration:none;
+                           letter-spacing:0.5px;font-family:'Inter','Segoe UI',sans-serif;">
+                                                        Ouvrir MedSmart V2 &rarr;
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+
+                        </td>
+                    </tr>
+
+                    <!-- ── DIVIDER ── -->
+                    <tr>
+                        <td style="background:#FFFFFF;padding:0 32px;">
+                            <div style="height:1px;background:linear-gradient(90deg,transparent,#E2E8F0,transparent);">
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- ── FOOTER ── -->
+                    <tr>
+                        <td class="footer-inner" align="center" style="background:#F8FAFD;padding:24px 32px 28px;">
+
+                            <!-- Brand -->
+                            <p style="margin:0 0 6px;font-size:13px;font-weight:700;color:#1A2647;
+                font-family:'Inter','Segoe UI',sans-serif;">
+                                MedSmart<span style="color:#4F8EF7;"> V2</span>
+                            </p>
+                            <p style="margin:0 0 4px;font-size:12px;color:#718096;line-height:1.5;
+                font-family:'Inter','Segoe UI',sans-serif;">
+                                Envoyé automatiquement &mdash; Ne pas répondre à cet e-mail
+                            </p>
+                            <p style="margin:0 0 18px;font-size:11px;color:#A0AEC0;line-height:1.5;
+                font-family:'Inter','Segoe UI',sans-serif;">
+                                Université Mohammed V &nbsp;&middot;&nbsp; EST Salé &nbsp;&middot;&nbsp; DUT GEII
+                                2025&ndash;2026
+                            </p>
+
+                            <!-- Tech tags -->
+                            <table cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;">
+                                <tr>
+                                    <td style="background:#E8EDF7;border-radius:6px;padding:6px 16px;">
+                                        <span style="font-size:10px;font-weight:700;color:#2A4A8F;letter-spacing:0.5px;
+                         font-family:'Inter','Segoe UI',sans-serif;">
+                                            Arduino Uno &nbsp;&middot;&nbsp; RTC DS3231 &nbsp;&middot;&nbsp; TCRT5000
+                                            &nbsp;&middot;&nbsp; EmailJS
+                                        </span>
+                                    </td>
+                                </tr>
+                            </table>
+
+                        </td>
+                    </tr>
+
+                    <!-- ── BOTTOM ACCENT BAR ── -->
+                    <tr>
+                        <td height="4"
+                            style="background:linear-gradient(90deg,#4F8EF7 0%,#6C63FF 50%,#48C9B0 100%);font-size:0;line-height:0;">
+                            &nbsp;</td>
+                    </tr>
+
+                </table>
+                <!-- ═══════════════════ END CARD ═══════════════════ -->
+
+            </td>
+        </tr>
+    </table>
+
+</body>
+
+</html>

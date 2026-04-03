@@ -1,0 +1,1855 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedSmart V2 — Interface de controle</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/twilio@4.19.0/dist/twilio.min.js"></script>
+    <style>
+        :root {
+            --bg: #080c14;
+            --bg2: #0c1220;
+            --surface: #111827;
+            --surface2: #1a2236;
+            --border: #1e293b;
+            --border-hover: #334155;
+            --text: #e2e8f0;
+            --text-dim: #94a3b8;
+            --muted: #64748b;
+            --cyan: #06b6d4;
+            --cyan-dim: rgba(6, 182, 212, 0.15);
+            --cyan-glow: rgba(6, 182, 212, 0.3);
+            --green: #10b981;
+            --green-dim: rgba(16, 185, 129, 0.12);
+            --red: #ef4444;
+            --red-dim: rgba(239, 68, 68, 0.12);
+            --amber: #f59e0b;
+            --amber-dim: rgba(245, 158, 11, 0.12);
+            --violet: #8b5cf6;
+            --mono: 'JetBrains Mono', monospace;
+            --sans: 'Plus Jakarta Sans', sans-serif;
+            --radius: 14px;
+            --shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--sans);
+            background: var(--bg);
+            color: var(--text);
+            font-size: 15px;
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* GRID BG */
+        .grid-bg {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            background-image: linear-gradient(rgba(6, 182, 212, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(6, 182, 212, 0.03) 1px, transparent 1px);
+            background-size: 48px 48px;
+        }
+
+        /* HEADER */
+        header {
+            background: rgba(17, 24, 39, 0.85);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 60px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--cyan), #0891b2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 16px var(--cyan-glow);
+        }
+
+        .logo-icon svg {
+            width: 20px;
+            height: 20px;
+            fill: #fff;
+        }
+
+        .logo-text {
+            font-weight: 800;
+            font-size: 1.1rem;
+            letter-spacing: -0.3px;
+            color: var(--text);
+        }
+
+        .logo-text span {
+            background: linear-gradient(135deg, var(--cyan), #22d3ee);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .conn-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 100px;
+            padding: 7px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-dim);
+            cursor: pointer;
+            transition: all .25s;
+        }
+
+        .conn-badge:hover {
+            border-color: var(--cyan);
+            color: var(--cyan);
+            box-shadow: 0 0 12px var(--cyan-glow);
+        }
+
+        .conn-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--muted);
+            transition: all .3s;
+        }
+
+        .conn-dot.connected {
+            background: var(--green);
+            box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+        }
+
+        .conn-dot.error {
+            background: var(--red);
+            box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
+        }
+
+        /* LAYOUT */
+        .layout {
+            max-width: 1500px;
+            margin: 0 auto;
+            padding: 1.5rem;
+            display: grid;
+            grid-template-columns: 360px 1fr 340px;
+            gap: 1.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        @media(max-width:1200px) {
+            .layout {
+                grid-template-columns: 360px 1fr;
+            }
+            .layout-col-right {
+                grid-column: 1 / -1;
+            }
+        }
+
+        @media(max-width:860px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .layout-col-right {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        /* LOG HEIGHT in dedicated column */
+        .layout-col-right .log-wrap {
+            height: 260px;
+        }
+
+        .layout-col-right .hist-list {
+            max-height: 420px;
+            overflow-y: auto;
+        }
+
+        /* CARDS */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            animation: fadeUp .5s ease both;
+        }
+
+        .card:nth-child(2) {
+            animation-delay: .08s;
+        }
+
+        .card:nth-child(3) {
+            animation-delay: .16s;
+        }
+
+        .card:nth-child(4) {
+            animation-delay: .24s;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card-header {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card-icon svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .card-title {
+            font-weight: 700;
+            font-size: 0.95rem;
+            letter-spacing: -0.2px;
+        }
+
+        .card-body {
+            padding: 1.25rem;
+        }
+
+        /* LCD */
+        .lcd-wrap {
+            background: #0a1a0e;
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-bottom: 1.25rem;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid #15331a;
+            box-shadow: inset 0 2px 12px rgba(0, 0, 0, 0.6), 0 0 20px rgba(16, 185, 129, 0.08);
+        }
+
+        .lcd-wrap::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(transparent 50%, rgba(0, 0, 0, 0.03) 50%);
+            background-size: 100% 4px;
+            pointer-events: none;
+            opacity: .5;
+        }
+
+        .lcd-screen {
+            font-family: var(--mono);
+            font-size: clamp(14px, 3vw, 17px);
+            color: #4ade80;
+            letter-spacing: 1.8px;
+            line-height: 1.7;
+            text-shadow: 0 0 8px rgba(74, 222, 128, 0.4);
+        }
+
+        .lcd-screen span {
+            display: block;
+        }
+
+        .lcd-label {
+            font-size: 10px;
+            color: #2d5c32;
+            letter-spacing: 3px;
+            text-align: right;
+            margin-top: 4px;
+            font-family: var(--mono);
+        }
+
+        /* STATUS ROW */
+        .status-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 1.25rem;
+            flex-wrap: wrap;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--green-dim);
+            border: 1px solid rgba(16, 185, 129, 0.25);
+            border-radius: 100px;
+            padding: 6px 14px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--green);
+            transition: all .3s;
+        }
+
+        .status-indicator.warn {
+            background: var(--amber-dim);
+            border-color: rgba(245, 158, 11, 0.25);
+            color: var(--amber);
+        }
+
+        .status-indicator.err {
+            background: var(--red-dim);
+            border-color: rgba(239, 68, 68, 0.25);
+            color: var(--red);
+        }
+
+        .s-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--green);
+            box-shadow: 0 0 6px rgba(16, 185, 129, 0.5);
+        }
+
+        .status-indicator.warn .s-dot {
+            background: var(--amber);
+            box-shadow: 0 0 6px rgba(245, 158, 11, 0.5);
+            animation: pulse .8s ease infinite;
+        }
+
+        .status-indicator.err .s-dot {
+            background: var(--red);
+            box-shadow: 0 0 6px rgba(239, 68, 68, 0.5);
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1
+            }
+
+            50% {
+                opacity: .3
+            }
+        }
+
+        .comp-badge {
+            margin-left: auto;
+            background: var(--cyan-dim);
+            border: 1px solid rgba(6, 182, 212, 0.2);
+            color: var(--cyan);
+            border-radius: 100px;
+            padding: 6px 14px;
+            font-size: 13px;
+            font-weight: 700;
+            font-family: var(--mono);
+        }
+
+        /* BARREL */
+        .barrel-section {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 1.25rem;
+        }
+
+        .barrel-svg {
+            transition: transform .6s cubic-bezier(.34, 1.56, .64, 1);
+        }
+
+        /* BUTTONS */
+        .btn-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: .6rem;
+            margin-bottom: .75rem;
+        }
+
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 11px 14px;
+            border-radius: 10px;
+            border: none;
+            font-family: var(--sans);
+            font-weight: 700;
+            font-size: .85rem;
+            cursor: pointer;
+            transition: all .2s;
+            white-space: nowrap;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent);
+            pointer-events: none;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.1);
+        }
+
+        .btn:active {
+            transform: scale(.97);
+        }
+
+        .btn:disabled {
+            opacity: .3;
+            cursor: not-allowed;
+            transform: none;
+            filter: none;
+        }
+
+        .btn svg {
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--cyan), #0891b2);
+            color: #fff;
+            grid-column: 1/-1;
+            padding: 13px;
+            font-size: .95rem;
+            box-shadow: 0 4px 16px var(--cyan-glow);
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 6px 24px rgba(6, 182, 212, 0.4);
+        }
+
+        .btn-ghost {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+        }
+
+        .btn-ghost:hover {
+            border-color: var(--border-hover);
+            color: var(--text);
+        }
+
+        /* INDICATORS */
+        .indicators {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: .6rem;
+            margin-bottom: 1rem;
+        }
+
+        .ind {
+            background: var(--surface2);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            padding: .7rem;
+            text-align: center;
+            transition: all .3s;
+        }
+
+        .ind.active {
+            background: var(--amber-dim);
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+
+        .ind.ok {
+            background: var(--green-dim);
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .ind-icon {
+            margin-bottom: 4px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .ind-icon svg {
+            width: 22px;
+            height: 22px;
+            stroke: var(--text-dim);
+            fill: none;
+            stroke-width: 1.8;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .ind.active .ind-icon svg {
+            stroke: var(--amber);
+        }
+
+        .ind.ok .ind-icon svg {
+            stroke: var(--green);
+        }
+
+        .ind-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--muted);
+            letter-spacing: .6px;
+            text-transform: uppercase;
+        }
+
+        .ind-val {
+            font-size: 12px;
+            font-weight: 700;
+            margin-top: 2px;
+            color: var(--text-dim);
+        }
+
+        .ind.active .ind-val {
+            color: var(--amber);
+        }
+
+        .ind.ok .ind-val {
+            color: var(--green);
+        }
+
+        /* HELP BANNER */
+        .help-banner {
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.08), rgba(139, 92, 246, 0.06));
+            border: 1px solid rgba(6, 182, 212, 0.15);
+            border-radius: var(--radius);
+            padding: 1.25rem 1.5rem;
+            margin-bottom: 1.5rem;
+            animation: fadeUp .5s ease both;
+        }
+
+        .help-title {
+            font-weight: 700;
+            color: var(--cyan);
+            margin-bottom: .6rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: .95rem;
+        }
+
+        .help-title svg {
+            width: 18px;
+            height: 18px;
+            stroke: var(--cyan);
+            fill: none;
+            stroke-width: 2;
+        }
+
+        .help-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .help-step {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            font-size: 13px;
+            color: var(--text-dim);
+        }
+
+        .help-num {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--cyan);
+            color: #fff;
+            font-size: 10px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        /* ALARM */
+        .alarm-date-grid,
+        .alarm-time-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: .5rem;
+            margin-bottom: .75rem;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: .6px;
+            text-transform: uppercase;
+        }
+
+        .status-badge.active {
+            background: var(--green);
+            color: #fff;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+        }
+
+        .status-badge.inactive {
+            background: var(--muted);
+            color: #fff;
+        }
+
+        /* FIELDS */
+        .field-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--muted);
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+        }
+
+        .field-input {
+            width: 100%;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px;
+            font-family: var(--mono);
+            font-size: .9rem;
+            background: var(--bg2);
+            color: var(--text);
+            text-align: center;
+            transition: all .2s;
+            outline: none;
+        }
+
+        .field-input:focus {
+            border-color: var(--cyan);
+            box-shadow: 0 0 0 3px var(--cyan-dim);
+        }
+
+        .time-set-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: .5rem;
+            margin-bottom: .75rem;
+        }
+
+        /* TOGGLE */
+        .toggle {
+            position: relative;
+            width: 40px;
+            height: 22px;
+            flex-shrink: 0;
+        }
+
+        .toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-track {
+            position: absolute;
+            inset: 0;
+            background: var(--border);
+            border-radius: 100px;
+            cursor: pointer;
+            transition: background .2s;
+        }
+
+        .toggle input:checked~.toggle-track {
+            background: var(--cyan);
+            box-shadow: 0 0 8px var(--cyan-glow);
+        }
+
+        .toggle-thumb {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 16px;
+            height: 16px;
+            background: #fff;
+            border-radius: 50%;
+            transition: transform .2s;
+            pointer-events: none;
+        }
+
+        .toggle input:checked~.toggle-thumb {
+            transform: translateX(18px);
+        }
+
+        /* LOG */
+        .log-wrap {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1rem;
+            height: 180px;
+            overflow-y: auto;
+            font-family: var(--mono);
+            font-size: 12px;
+        }
+
+        .log-entry {
+            padding: 2px 0;
+            line-height: 1.5;
+        }
+
+        .log-entry.rx {
+            color: #4ade80;
+        }
+
+        .log-entry.tx {
+            color: #60a5fa;
+        }
+
+        .log-entry.sys {
+            color: #64748b;
+        }
+
+        .log-entry.err {
+            color: #f87171;
+        }
+
+        .log-entry.ok {
+            color: #4ade80;
+        }
+
+        .log-wrap::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .log-wrap::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .log-wrap::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 2px;
+        }
+
+        /* HISTORY */
+        .hist-list {
+            display: flex;
+            flex-direction: column;
+            gap: .5rem;
+        }
+
+        .hist-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            background: var(--surface2);
+            font-size: 13px;
+            border: 1px solid var(--border);
+        }
+
+        .hist-item.taken {
+            background: var(--green-dim);
+            border-color: rgba(16, 185, 129, 0.2);
+        }
+
+        .hist-item.missed {
+            background: var(--red-dim);
+            border-color: rgba(239, 68, 68, 0.2);
+        }
+
+        .hist-icon {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .hist-icon svg {
+            width: 16px;
+            height: 16px;
+            stroke-width: 2.5;
+        }
+
+        .hist-item.taken .hist-icon svg {
+            stroke: var(--green);
+        }
+
+        .hist-item.missed .hist-icon svg {
+            stroke: var(--red);
+        }
+
+        .hist-msg {
+            flex: 1;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .hist-time {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--muted);
+        }
+
+        /* SCANLINE OVERLAY on LCD */
+        .scanline {
+            position: absolute;
+            width: 100%;
+            height: 30%;
+            background: linear-gradient(transparent, rgba(74, 222, 128, 0.03), transparent);
+            animation: scanAnim 3s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes scanAnim {
+            0% {
+                top: -30%
+            }
+
+            100% {
+                top: 100%
+            }
+        }
+
+        /* GLOW RING for barrel center */
+        @keyframes glowPulse {
+
+            0%,
+            100% {
+                opacity: .6
+            }
+
+            50% {
+                opacity: 1
+            }
+        }
+
+        /* ========================
+           NOTIFICATIONS CARD
+        ======================== */
+        .notif-section {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: .85rem;
+        }
+
+        .notif-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .notif-section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: .75rem;
+        }
+
+        .notif-section-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: .85rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .notif-section-title .wa-dot {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #25D366;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+
+        .notif-section-title .gm-dot {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #EA4335, #FBBC05 50%, #34A853);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            flex-shrink: 0;
+        }
+
+        .btn-test-notif {
+            padding: 4px 12px;
+            border-radius: 100px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--cyan);
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all .2s;
+            font-family: var(--sans);
+        }
+
+        .btn-test-notif:hover {
+            border-color: var(--cyan);
+            background: var(--cyan-dim);
+            box-shadow: 0 0 8px var(--cyan-glow);
+        }
+
+        .notif-field-row {
+            margin-bottom: .55rem;
+        }
+
+        .field-input-notif {
+            width: 100%;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 10px;
+            font-family: var(--mono);
+            font-size: .82rem;
+            background: var(--bg);
+            color: var(--text);
+            transition: all .2s;
+            outline: none;
+        }
+
+        .field-input-notif:focus {
+            border-color: var(--cyan);
+            box-shadow: 0 0 0 3px var(--cyan-dim);
+        }
+
+        .notif-toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 10px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-top: .6rem;
+        }
+
+        .notif-toggle-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-dim);
+        }
+
+        .notif-tooltip {
+            margin-top: .6rem;
+            font-size: 11px;
+            color: var(--muted);
+            line-height: 1.6;
+            padding: 8px 10px;
+            background: rgba(6, 182, 212, 0.05);
+            border: 1px solid rgba(6, 182, 212, 0.12);
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .notif-tooltip summary {
+            font-weight: 600;
+            color: var(--cyan);
+            font-size: 11px;
+            list-style: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .notif-tooltip summary::before {
+            content: 'ℹ️';
+        }
+
+        /* HISTORY NOTIFICATION BADGES */
+        .hist-notif-badges {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .notif-badge {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 1.5px solid var(--border);
+            background: var(--surface2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            transition: all .3s;
+            cursor: default;
+        }
+
+        .notif-badge.sent {
+            border-color: var(--green);
+            background: var(--green-dim);
+            box-shadow: 0 0 6px rgba(16, 185, 129, 0.3);
+        }
+
+        .notif-badge.failed {
+            border-color: var(--red);
+            background: var(--red-dim);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="grid-bg"></div>
+
+    <header>
+        <div class="logo">
+            <div class="logo-icon">
+                <svg viewBox="0 0 24 24">
+                    <path d="M10.5 2h3v6h6v3h-6v6h-3v-6h-6V8h6z" fill="#fff" />
+                </svg>
+            </div>
+            <div class="logo-text">Med<span>Smart</span> V2</div>
+        </div>
+        <div class="conn-badge" onclick="toggleConnect()">
+            <div class="conn-dot" id="connDot"></div>
+            <span id="connText">Connecter Arduino</span>
+        </div>
+    </header>
+
+    <div class="layout">
+        <!-- LEFT COLUMN -->
+        <div style="display:flex;flex-direction:column;gap:1.5rem;">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon" style="background:var(--green-dim);">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"
+                            stroke-linecap="round">
+                            <rect x="2" y="3" width="20" height="14" rx="2" />
+                            <line x1="8" y1="21" x2="16" y2="21" />
+                            <line x1="12" y1="17" x2="12" y2="21" />
+                        </svg>
+                    </div>
+                    <div class="card-title">Ecran LCD en direct</div>
+                </div>
+                <div class="card-body">
+                    <div class="lcd-wrap">
+                        <div class="scanline"></div>
+                        <div class="lcd-screen">
+                            <span id="lcd1">H: --:--:--</span>
+                            <span id="lcd2">D: --/--/----</span>
+                        </div>
+                        <div class="lcd-label">LCD 16x2 &middot; I2C 0x27</div>
+                    </div>
+
+                    <div class="status-row">
+                        <div class="status-indicator" id="statusBadge">
+                            <div class="s-dot"></div>
+                            <span id="statusText">En attente...</span>
+                        </div>
+                        <div class="comp-badge" id="compBadge">Case --/5</div>
+                    </div>
+
+                    <div class="barrel-section">
+                        <svg class="barrel-svg" id="barrelSvg" width="180" height="180" viewBox="0 0 180 180">
+                            <g id="barrelG"></g>
+                            <circle cx="90" cy="90" r="26" fill="var(--bg)" stroke="var(--border)" stroke-width="1.5" />
+                            <circle cx="90" cy="90" r="7" fill="var(--cyan)"
+                                style="filter:drop-shadow(0 0 6px var(--cyan-glow));animation:glowPulse 2s ease infinite" />
+                            <text x="90" y="15" text-anchor="middle" font-size="9" fill="var(--cyan)"
+                                font-family="'Plus Jakarta Sans',sans-serif" font-weight="700"
+                                letter-spacing="1">OUVERTURE</text>
+                        </svg>
+                    </div>
+
+                    <div class="indicators">
+                        <div class="ind" id="indLed">
+                            <div class="ind-icon"><svg viewBox="0 0 24 24">
+                                    <path d="M9 18h6M10 22h4M12 2a7 7 0 0 1 4 12.7V17H8v-2.3A7 7 0 0 1 12 2z" />
+                                </svg></div>
+                            <div class="ind-label">LED</div>
+                            <div class="ind-val" id="ledVal">OFF</div>
+                        </div>
+                        <div class="ind" id="indBuzz">
+                            <div class="ind-icon"><svg viewBox="0 0 24 24">
+                                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                                    <path d="M15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14" />
+                                </svg></div>
+                            <div class="ind-label">Buzzer</div>
+                            <div class="ind-val" id="buzzVal">Silencieux</div>
+                        </div>
+                        <div class="ind" id="indMotor">
+                            <div class="ind-icon"><svg viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="3" />
+                                    <path
+                                        d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M16.95 16.95l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M16.95 7.05l1.42-1.42" />
+                                </svg></div>
+                            <div class="ind-label">Moteur</div>
+                            <div class="ind-val" id="motorVal">Arrete</div>
+                        </div>
+                        <div class="ind" id="indSensor">
+                            <div class="ind-icon"><svg viewBox="0 0 24 24">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                    <circle cx="12" cy="12" r="3" />
+                                </svg></div>
+                            <div class="ind-label">Capteur</div>
+                            <div class="ind-val" id="sensorVal">En attente</div>
+                        </div>
+                    </div>
+
+                    <div class="btn-group">
+                        <button class="btn btn-primary" id="btnDispense" onclick="sendCmd('DISPENSE')" disabled>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M10.5 2h3v6h6v3h-6v6h-3v-6h-6V8h6z" />
+                            </svg>
+                            Distribuer maintenant
+                        </button>
+                        <button class="btn btn-ghost" onclick="sendCmd('TEST_MOTOR')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="3" />
+                                <path
+                                    d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M16.95 16.95l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M16.95 7.05l1.42-1.42" />
+                            </svg>
+                            Test moteur
+                        </button>
+                        <button class="btn btn-ghost" onclick="sendCmd('BUZZ_TEST')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                                <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+                            </svg>
+                            Test buzzer
+                        </button>
+                        <button class="btn btn-ghost" onclick="sendCmd('LED_TEST')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 18h6M10 22h4M12 2a7 7 0 0 1 4 12.7V17H8v-2.3A7 7 0 0 1 12 2z" />
+                            </svg>
+                            Test LED
+                        </button>
+                        <button class="btn btn-ghost" onclick="sendCmd('STATUS')" style="grid-column:1/-1;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="23 4 23 10 17 10" />
+                                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+                            </svg>
+                            Rafraichir statut
+                        </button>
+                        <button class="btn btn-ghost" onclick="testEmail()">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                            Test Email
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN -->
+        <div style="display:flex;flex-direction:column;gap:1.5rem;">
+            <!-- Help -->
+            <div class="help-banner" id="helpBanner">
+                <div class="help-title">
+                    <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                        <path
+                            d="M1 1l22 22M16.72 11.06A10.94 10.94 0 0 1 19 12.55M5 12.55a10.94 10.94 0 0 1 5.17-2.39M10.71 5.05A16 16 0 0 1 22.56 9M1.42 9a15.91 15.91 0 0 1 4.7-2.88M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01" />
+                    </svg>
+                    Comment connecter l'Arduino ?
+                </div>
+                <div class="help-steps">
+                    <div class="help-step">
+                        <div class="help-num">1</div><span>Branche l'Arduino en USB sur ton PC</span>
+                    </div>
+                    <div class="help-step">
+                        <div class="help-num">2</div><span>Upload le code
+                            <strong>Distributeur_Medicament_V2.ino</strong></span>
+                    </div>
+                    <div class="help-step">
+                        <div class="help-num">3</div><span>Clique <strong>"Connecter Arduino"</strong> en haut et
+                            selectionne le bon port</span>
+                    </div>
+                    <div class="help-step">
+                        <div class="help-num">4</div><span>L'interface s'active automatiquement</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alarms -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon" style="background:var(--amber-dim);">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2"
+                            stroke-linecap="round">
+                            <circle cx="12" cy="13" r="8" />
+                            <path d="M12 9v4l2 2M5 3L2 6M22 6l-3-3" />
+                        </svg>
+                    </div>
+                    <div class="card-title">Prochaine Alarme</div>
+                </div>
+                <div class="card-body">
+                    <div id="alarmCard"><!-- generated by JS --></div>
+                </div>
+            </div>
+
+            <!-- RTC -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon" style="background:var(--cyan-dim);">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2"
+                            stroke-linecap="round">
+                            <circle cx="12" cy="12" r="10" />
+                            <polyline points="12 6 12 12 16 14" />
+                        </svg>
+                    </div>
+                    <div class="card-title">Regler l'horloge RTC</div>
+                </div>
+                <div class="card-body">
+                    <div class="time-set-grid">
+                        <div>
+                            <div class="field-label">Heure</div><input class="field-input" id="tH" type="number" min="0"
+                                max="23" value="8">
+                        </div>
+                        <div>
+                            <div class="field-label">Minutes</div><input class="field-input" id="tM" type="number"
+                                min="0" max="59" value="0">
+                        </div>
+                        <div>
+                            <div class="field-label">Secondes</div><input class="field-input" id="tS" type="number"
+                                min="0" max="59" value="0">
+                        </div>
+                        <div>
+                            <div class="field-label">Jour</div><input class="field-input" id="tD" type="number" min="1"
+                                max="31" value="27">
+                        </div>
+                        <div>
+                            <div class="field-label">Mois</div><input class="field-input" id="tMo" type="number" min="1"
+                                max="12" value="3">
+                        </div>
+                        <div>
+                            <div class="field-label">Annee</div><input class="field-input" id="tY" type="number"
+                                min="2024" max="2099" value="2026">
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" onclick="setTime()" style="width:100%;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round">
+                            <path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z" />
+                        </svg>
+                        Envoyer l'heure a l'Arduino
+                    </button>
+                    <button class="btn btn-ghost" onclick="setNow()" style="width:100%;margin-top:.5rem;padding:10px;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round">
+                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                        </svg>
+                        Utiliser l'heure actuelle du PC
+                    </button>
+                </div>
+            </div>
+
+
+        </div>
+
+        <!-- RIGHT COLUMN: History & Console -->
+        <div class="layout-col-right">
+            <!-- History -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon" style="background:rgba(139,92,246,0.12);">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="var(--violet)" stroke-width="2"
+                            stroke-linecap="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                            <polyline points="14 2 14 8 20 8" />
+                            <line x1="16" y1="13" x2="8" y2="13" />
+                            <line x1="16" y1="17" x2="8" y2="17" />
+                        </svg>
+                    </div>
+                    <div class="card-title">Historique</div>
+                </div>
+                <div class="card-body">
+                    <div class="hist-list" id="histList">
+                        <div class="hist-item" style="color:var(--muted);justify-content:center;font-size:13px;">Aucun evenement</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Console -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon" style="background:var(--surface2);">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="var(--text-dim)" stroke-width="2"
+                            stroke-linecap="round">
+                            <polyline points="4 17 10 11 4 5" />
+                            <line x1="12" y1="19" x2="20" y2="19" />
+                        </svg>
+                    </div>
+                    <div class="card-title">Console Serial</div>
+                </div>
+                <div class="card-body" style="padding-bottom:1rem;">
+                    <div class="log-wrap" id="logWrap"></div>
+                    <button class="btn btn-ghost" onclick="clearLog()"
+                        style="width:100%;margin-top:.75rem;padding:8px;font-size:13px;">Effacer la console</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let port = null, reader = null, writer = null, connected = false, buffer = '', barrelAngle = 0, currentSlot = 0, taken = {},
+            alarm = { d: 28, mo: 3, y: 2026, h: 8, m: 0, on: false }, simMode = false, alarmEditing = false,
+            arduinoTime = { d: 1, mo: 1, y: 2026, h: 0, m: 0, s: 0 };
+
+        function drawBarrel() {
+            const g = document.getElementById('barrelG'); g.innerHTML = '';
+            const cx = 90, cy = 90, ro = 82, ri = 30;
+            const colors = ['#111827', '#06b6d4', '#8b5cf6', '#ec4899', '#f97316', '#22c55e'];
+            for (let i = 0; i < 6; i++) {
+                const a1 = (i * 60 - 90) * Math.PI / 180, a2 = ((i + 1) * 60 - 90) * Math.PI / 180;
+                const x1 = cx + ro * Math.cos(a1), y1 = cy + ro * Math.sin(a1), x2 = cx + ro * Math.cos(a2), y2 = cy + ro * Math.sin(a2);
+                const ix1 = cx + ri * Math.cos(a1), iy1 = cy + ri * Math.sin(a1), ix2 = cx + ri * Math.cos(a2), iy2 = cy + ri * Math.sin(a2);
+                const isCurrent = (i === currentSlot), isTaken = taken[i];
+                const col = i === 0 ? '#080c14' : (isTaken ? '#064e3b' : colors[i]);
+                const stroke = isCurrent ? '#06b6d4' : 'rgba(255,255,255,0.06)';
+                g.innerHTML += `<path d="M${ix1},${iy1} L${x1},${y1} A${ro},${ro} 0 0,1 ${x2},${y2} L${ix2},${iy2} A${ri},${ri} 0 0,0 ${ix1},${iy1}Z" fill="${col}" stroke="${stroke}" stroke-width="${isCurrent ? 2.5 : 0.5}" ${isCurrent ? 'style="filter:drop-shadow(0 0 6px rgba(6,182,212,0.4))"' : ''}/>`;
+                if (i > 0) {
+                    const am = (i * 60 - 60) * Math.PI / 180, mr = (ro + ri) / 2;
+                    const lx = cx + mr * Math.cos(am), ly = cy + mr * Math.sin(am);
+                    const txt = isTaken ? '\u2713' : i.toString();
+                    const fc = isTaken ? '#10b981' : 'rgba(255,255,255,0.7)';
+                    g.innerHTML += `<text x="${lx}" y="${ly + 4}" text-anchor="middle" font-size="11" fill="${fc}" font-family="'Plus Jakarta Sans',sans-serif" font-weight="700">${txt}</text>`;
+                }
+            }
+        }
+        drawBarrel();
+
+        function initAlarmUI() {
+            const el = document.getElementById('alarmCard');
+            if (!el || el.innerHTML.trim() !== '<!-- generated by JS -->') return;
+            el.innerHTML = `
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+                    <span class="field-label" style="margin:0">Configuration Alarme</span>
+                    <span id="alarmStatusBadge" class="status-badge ${alarm.on ? 'active' : 'inactive'}">${alarm.on ? 'ACTIVE' : 'INACTIVE'}</span>
+                </div>
+                <div style="margin-bottom:.75rem;">
+                    <div class="field-label">Date</div>
+                    <input class="field-input" type="date" id="alarmDate" onfocus="alarmEditing=true" oninput="alarmEditing=true" onchange="upAl()" style="text-align:left;padding:10px 12px;">
+                </div>
+                <div style="margin-bottom:.75rem;">
+                    <div class="field-label">Heure</div>
+                    <input class="field-input" type="time" id="alarmTime" onfocus="alarmEditing=true" oninput="alarmEditing=true" onchange="upAl()" style="text-align:left;padding:10px 12px;">
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;margin-bottom:.75rem;">
+                    <span style="font-size:13px;font-weight:600;color:var(--text-dim);">Activer l'alarme</span>
+                    <label class="toggle" title="Activer l'alarme">
+                        <input type="checkbox" id="aon" onchange="alarm.on=this.checked;updateBadge()">
+                        <div class="toggle-track"></div><div class="toggle-thumb"></div>
+                    </label>
+                </div>
+                <button class="btn btn-primary" onclick="applyAlarm()" style="width:100%;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M5 3L2 6M22 6l-3-3"/></svg>
+                    Programmer l'alarme
+                </button>
+                <button class="btn btn-ghost" onclick="setAlarmSoon()" style="width:100%;margin-top:.5rem;padding:9px;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                    Dans 1 min (test rapide)
+                </button>`;
+        }
+        function updateBadge() {
+            const st = document.getElementById('alarmStatusBadge');
+            if (st) { st.textContent = alarm.on ? 'ACTIVE' : 'INACTIVE'; st.className = 'status-badge ' + (alarm.on ? 'active' : 'inactive'); }
+        }
+        function updateAlarmUI() {
+            initAlarmUI();
+            if (alarmEditing) return;
+            
+            const activeEl = document.activeElement;
+            const pad = n => String(n).padStart(2, '0');
+            const dateEl = document.getElementById('alarmDate');
+            const timeEl = document.getElementById('alarmTime');
+            
+            // Ne pas écraser si l'un des champs est actif
+            if (activeEl === dateEl || activeEl === timeEl) return;
+
+            if (dateEl) dateEl.value = `${alarm.y}-${pad(alarm.mo)}-${pad(alarm.d)}`;
+            if (timeEl) timeEl.value = `${pad(alarm.h)}:${pad(alarm.m)}`;
+            const chk = document.getElementById('aon'); if (chk) chk.checked = alarm.on;
+            updateBadge();
+        }
+        initAlarmUI(); updateAlarmUI();
+
+        function upAl() {
+            const dateEl = document.getElementById('alarmDate');
+            const timeEl = document.getElementById('alarmTime');
+            if (dateEl && dateEl.value) {
+                const parts = dateEl.value.split('-');
+                alarm.y = parseInt(parts[0]) || 2026;
+                alarm.mo = parseInt(parts[1]) || 1;
+                alarm.d = parseInt(parts[2]) || 1;
+            }
+            if (timeEl && timeEl.value) {
+                const parts = timeEl.value.split(':');
+                alarm.h = parseInt(parts[0]) || 0;
+                alarm.m = parseInt(parts[1]) || 0;
+            }
+        }
+        function setAlarmSoon() {
+            alarmEditing = true;
+            // Utiliser l'heure de l'Arduino si disponible, sinon l'heure système
+            let baseH = arduinoTime.h, baseM = arduinoTime.m;
+            if (!connected && !simMode) {
+                const now = new Date(); baseH = now.getHours(); baseM = now.getMinutes();
+            }
+            
+            let targetM = baseM + 1;
+            let targetH = baseH;
+            if (targetM >= 60) { targetM = 0; targetH = (targetH + 1) % 24; }
+            
+            alarm.h = targetH; alarm.m = targetM; alarm.on = true;
+            // On garde la date de l'Arduino par défaut
+            alarm.d = arduinoTime.d; alarm.mo = arduinoTime.mo; alarm.y = arduinoTime.y;
+            
+            updateAlarmUI();
+            applyAlarm();
+        }
+        function applyAlarm() {
+            upAl();
+            alarmEditing = false;
+            const pad = n => String(n).padStart(2, '0');
+            sendCmd(`SET_ALARM:${pad(alarm.d)}:${pad(alarm.mo)}:${alarm.y}:${pad(alarm.h)}:${pad(alarm.m)}:${alarm.on ? 1 : 0}`);
+            addLog(`Alarme synchronisée avec l'Arduino`, 'ok');
+        }
+
+        function setNow() {
+            const n = new Date();
+            document.getElementById('tH').value = n.getHours();
+            document.getElementById('tM').value = n.getMinutes();
+            document.getElementById('tS').value = n.getSeconds();
+            document.getElementById('tD').value = n.getDate();
+            document.getElementById('tMo').value = n.getMonth() + 1;
+            document.getElementById('tY').value = n.getFullYear();
+        }
+        function setTime() {
+            const p = n => String(parseInt(n) || 0).padStart(2, '0');
+            const h = p(document.getElementById('tH').value), mi = p(document.getElementById('tM').value), s = p(document.getElementById('tS').value);
+            const d = p(document.getElementById('tD').value), mo = p(document.getElementById('tMo').value), y = document.getElementById('tY').value || '2026';
+            sendCmd(`SET_TIME:${h}:${mi}:${s}:${d}:${mo}:${y}`);
+        }
+
+        async function toggleConnect() {
+            if (connected) { await disconnect(); return; }
+            if (!('serial' in navigator)) { addLog('Web Serial non supporte. Utilise Chrome ou Edge.', 'err'); enterSimMode(); return; }
+            try {
+                port = await navigator.serial.requestPort(); await port.open({ baudRate: 9600 });
+                connected = true; simMode = false;
+                document.getElementById('connDot').className = 'conn-dot connected';
+                document.getElementById('connText').textContent = 'Arduino connecte';
+                document.getElementById('helpBanner').style.display = 'none';
+                document.getElementById('btnDispense').disabled = false;
+                addLog('Arduino connecte. Attente du redemarrage...', 'sys');
+                await new Promise(r => setTimeout(r, 2000));
+                startReading(); sendCmd('STATUS'); addLog('Interface prete a communiquer', 'ok');
+            } catch (e) { addLog('Erreur connexion: ' + e.message, 'err'); }
+        }
+
+        async function disconnect() {
+            connected = false; simMode = false;
+            if (reader) { try { await reader.cancel(); } catch { } reader = null; }
+            if (writer) { try { await writer.close(); } catch { } writer = null; }
+            if (port) { try { await port.close(); } catch { } port = null; }
+            document.getElementById('connDot').className = 'conn-dot';
+            document.getElementById('connText').textContent = 'Connecter Arduino';
+            document.getElementById('btnDispense').disabled = true;
+            setStatus('Deconnecte', 'warn'); addLog('Deconnecte', 'sys');
+        }
+
+        async function startReading() {
+            if (reader) { addLog('Lecteur deja actif', 'sys'); return; }
+            const dec = new TextDecoder();
+            try {
+                reader = port.readable.getReader(); writer = port.writable.getWriter();
+                addLog('Canaux de communication ouverts', 'sys');
+                while (connected) {
+                    const { value, done } = await reader.read(); if (done) break;
+                    if (value) {
+                        buffer += dec.decode(value); const lines = buffer.split(/\r?\n/); buffer = lines.pop();
+                        for (const line of lines) { if (line.trim()) processLine(line.trim()); }
+                    }
+                }
+            } catch (e) {
+                if (connected) addLog('Erreur critique lecture: ' + e.message, 'err');
+            } finally { if (reader) { try { reader.releaseLock(); } catch { } reader = null; } if (writer) { try { writer.releaseLock(); } catch { } writer = null; } }
+        }
+
+        async function sendCmd(cmd) {
+            addLog('> ' + cmd, 'tx');
+            if (simMode) { simulateResponse(cmd); return; }
+            if (!connected || !writer) { addLog('Non connecte!', 'err'); return; }
+            try { await writer.write(new TextEncoder().encode(cmd + '\n')); } catch (e) { addLog('Erreur envoi: ' + e.message, 'err'); }
+        }
+
+        function processLine(line) {
+            if (!line) return; addLog('< ' + line, 'rx');
+            if (line === 'READY') { setStatus('Pret', 'ok'); return; }
+            if (line.startsWith('STATUS:')) {
+                const s = line.substring(7);
+                if (s === 'MOTOR_TESTING') { setInd('motor', 'En mouvement', true); }
+                if (s === 'MOTOR_OK') {
+                    setInd('motor', 'Test OK', false, 'ok');
+                    setTimeout(() => setInd('motor', 'Arrete', false), 2000);
+                    sendNotification('motor_ok', false, null, null);
+                }
+                if (s === 'DISPENSING') {
+                    setStatus('Ouverture compartiment...', 'warn');
+                    setInd('motor', 'Rotation 60deg', true);
+                    document.getElementById('lcd1').textContent = 'OUVERTURE...';
+                    document.getElementById('lcd2').textContent = 'COMPARTIMENT';
+                }
+                if (s === 'WAITING_FOR_PILL') {
+                    setStatus('Attente retrait pilule (10s)', 'warn');
+                    setInd('led', 'Clignotant', true);
+                    setInd('buzz', 'Clignotant', true);
+                    setInd('sensor', 'Surveillance', true);
+                    document.getElementById('lcd1').textContent = 'PRENEZ PILULE!';
+                    document.getElementById('lcd2').textContent = 'TEMPS: 10s';
+                    sendNotification('alarm_triggered', false, null, null);
+                }
+                if (s === 'PILL_TAKEN') {
+                    setInd('led', 'OFF', false); setInd('buzz', 'Silencieux', false);
+                    setInd('sensor', 'Retire', false, 'ok'); setStatus('Pilule PRISE', 'ok');
+                    const takenEl = addHistory('Pilule prise', 'taken', currentSlot);
+                    taken[currentSlot] = true; drawBarrel();
+                    document.getElementById('lcd1').textContent = 'STATUT: PRIS';
+                    document.getElementById('lcd2').textContent = 'MERCI!';
+                    setTimeout(() => { setInd('motor', 'Retour Point Zero', true); setTimeout(() => setInd('motor', 'Arrete', false), 2500); }, 500);
+                    sendNotification('pill_taken', false, currentSlot, takenEl);
+                }
+                if (s === 'PILL_MISSED') {
+                    setInd('led', 'OFF', false); setInd('buzz', 'Silencieux', false);
+                    setInd('sensor', 'Timeout', false); setStatus('Pilule OMISE (10s)', 'err');
+                    const missedEl = addHistory('Pilule omise (timeout 10s)', 'missed', null);
+                    document.getElementById('lcd1').textContent = 'STATUT: OMIS';
+                    document.getElementById('lcd2').textContent = 'NON RETIRE!';
+                    setTimeout(() => setInd('motor', 'Arrete', false), 3000);
+                    sendNotification('pill_missed', false, null, missedEl);
+                }
+                if (s === 'READY') {
+                    setStatus('Pret -- en attente', 'ok');
+                    setInd('motor', 'Arrete', false);
+                }
+                if (s === 'BUZZ_OK') addLog('Buzzer OK', 'sys');
+                if (s === 'LED_OK') addLog('LED OK', 'sys');
+                if (s === 'TIME_SET') { addLog('Heure et date synchronisees', 'ok'); setStatus('Heure reglee', 'ok'); }
+                if (s === 'ALARM_SET') addLog('Alarme mise a jour', 'sys');
+                return;
+            }
+            if (line.startsWith('TIME:')) {
+                const timeParts = line.match(/TIME:(\d+):(\d+):(\d+)/), dateParts = line.match(/DATE:(\d+)\/(\d+)\/(\d+)/), compParts = line.match(/COMP:(\d+)/);
+                if (timeParts) {
+                    arduinoTime.h = parseInt(timeParts[1]);
+                    arduinoTime.m = parseInt(timeParts[2]);
+                    arduinoTime.s = parseInt(timeParts[3]);
+                    document.getElementById('lcd1').textContent = 'H: ' + timeParts[1] + ':' + timeParts[2] + ':' + timeParts[3];
+                }
+                if (dateParts) {
+                    arduinoTime.d = parseInt(dateParts[1]);
+                    arduinoTime.mo = parseInt(dateParts[2]);
+                    arduinoTime.y = parseInt(dateParts[3]);
+                    document.getElementById('lcd2').textContent = 'D: ' + dateParts[1] + '/' + dateParts[2] + '/' + dateParts[3];
+                }
+                if (compParts) {
+                    currentSlot = parseInt(compParts[1]);
+                    document.getElementById('compBadge').textContent = `Case ${currentSlot}/5`;
+                    barrelAngle = currentSlot * 60;
+                    document.getElementById('barrelSvg').style.transform = `rotate(${barrelAngle}deg)`;
+                    drawBarrel();
+                }
+                const almParts = line.match(/ALM:(\d+\/\d+\/\d+)\s(\d+:\d+):(\d)/);
+                if (almParts) {
+                    const dp = almParts[1].split('/'), tp = almParts[2].split(':');
+                    alarm.d = parseInt(dp[0]); alarm.mo = parseInt(dp[1]); alarm.y = parseInt(dp[2]);
+                    alarm.h = parseInt(tp[0]); alarm.m = parseInt(tp[1]); alarm.on = (almParts[3] === '1');
+                    updateAlarmUI();
+                }
+                // SENS is part of TIME status line, parse it here
+                const sensParts = line.match(/SENS:(\d)/);
+                if (sensParts) {
+                    const sv = sensParts[1] === '1';
+                    setInd('sensor', sv ? 'Presente' : 'Vide', sv);
+                    const sensorVal = document.getElementById('sensorVal');
+                    if (sensorVal) {
+                        sensorVal.style.color = sv ? 'var(--green)' : 'var(--red)';
+                    }
+                }
+            }
+        }
+
+        function enterSimMode() {
+            simMode = true; connected = true;
+            document.getElementById('connDot').className = 'conn-dot connected';
+            document.getElementById('connText').textContent = 'Mode demo';
+            document.getElementById('helpBanner').style.display = 'none';
+            document.getElementById('btnDispense').disabled = false;
+            setStatus('Mode demo -- sans Arduino', 'warn');
+            addLog('Mode demo active (Chrome/Edge requis pour vrai Serial)', 'sys');
+            startFakeClock();
+        }
+        function startFakeClock() {
+            setInterval(() => {
+                if (!simMode) return; const d = new Date(), p = n => String(n).padStart(2, '0');
+                document.getElementById('lcd1').textContent = `H: ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+                document.getElementById('lcd2').textContent = `D: ${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()}`;
+            }, 1000);
+        }
+
+        function simulateResponse(cmd) {
+            setTimeout(() => {
+                if (cmd === 'TEST_MOTOR') {
+                    processLine('STATUS:MOTOR_TESTING');
+                    setTimeout(() => processLine('STATUS:MOTOR_OK'), 1200);
+                } else if (cmd === 'DISPENSE') {
+                    processLine('STATUS:DISPENSING');
+                    setTimeout(() => {
+                        currentSlot = (currentSlot + 1) % 5;
+                        barrelAngle = currentSlot * 60;
+                        document.getElementById('barrelSvg').style.transform = `rotate(${barrelAngle}deg)`;
+                        document.getElementById('compBadge').textContent = `Case ${currentSlot}/5`;
+                        drawBarrel();
+                        processLine('STATUS:WAITING_FOR_PILL');
+                    }, 1500);
+                    setTimeout(() => {
+                        processLine('STATUS:PILL_TAKEN');
+                        taken[currentSlot] = true; drawBarrel();
+                    }, 6000);
+                    setTimeout(() => processLine('STATUS:READY'), 9000);
+                } else if (cmd === 'BUZZ_TEST') {
+                    processLine('STATUS:BUZZ_OK');
+                } else if (cmd === 'LED_TEST') {
+                    processLine('STATUS:LED_OK');
+                } else if (cmd === 'STATUS') {
+                    const p = n => String(n).padStart(2, '0');
+                    const d = new Date();
+                    processLine(`TIME:${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}|DATE:${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()}|COMP:${currentSlot}|ALM:${p(alarm.d)}/${p(alarm.mo)}/${alarm.y} ${p(alarm.h)}:${p(alarm.m)}:${alarm.on ? 1 : 0}|SENS:0`);
+                } else { addLog('< STATUS:OK', 'rx'); }
+            }, 200);
+        }
+
+        function setStatus(msg, type) {
+            const b = document.getElementById('statusBadge');
+            b.className = 'status-indicator' + (type === 'warn' ? ' warn' : (type === 'err' ? ' err' : ''));
+            document.getElementById('statusText').textContent = msg;
+        }
+        function setInd(id, val, active, extra) {
+            const el = document.getElementById('ind' + id.charAt(0).toUpperCase() + id.slice(1));
+            if (el) el.className = 'ind' + (active ? ' active' : (extra === 'ok' ? ' ok' : ''));
+            const v = document.getElementById(id + 'Val'); if (v) v.textContent = val;
+        }
+        function addLog(msg, type = 'sys') {
+            const w = document.getElementById('logWrap'), d = document.createElement('div');
+            d.className = 'log-entry ' + type; const t = new Date(), p = n => String(n).padStart(2, '0');
+            d.textContent = `[${p(t.getHours())}:${p(t.getMinutes())}:${p(t.getSeconds())}] ${msg}`;
+            w.appendChild(d); w.scrollTop = w.scrollHeight;
+        }
+        function clearLog() { document.getElementById('logWrap').innerHTML = ''; }
+        function addHistory(msg, type, slot) {
+            const h = document.getElementById('histList');
+            if (h.children.length === 1 && h.children[0].style.color) h.innerHTML = '';
+            const t = new Date(), p = n => String(n).padStart(2, '0'), time = `${p(t.getHours())}:${p(t.getMinutes())}`;
+            const iconSvg = type === 'taken'
+                ? '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>'
+                : '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+            const div = document.createElement('div');
+            div.className = `hist-item ${type}`;
+            div.innerHTML = `<span class="hist-icon">${iconSvg}</span><span class="hist-msg">${msg}</span><span class="hist-time">${time}</span>`;
+            h.insertBefore(div, h.firstChild);
+            if (h.children.length > 10) h.removeChild(h.lastChild);
+            return div;
+        }
+
+        addLog('Interface MedSmart V2 prete', 'sys');
+        addLog('Clique "Connecter Arduino" pour demarrer', 'sys');
+        setNow();
+
+        // ============================================================
+        //  NOTIFICATION ENGINE — credentials hardés, aucune UI
+        // ============================================================
+
+        const NOTIF_CONFIG = {
+          gmService:   "med-smart",
+          gmTemplate: "template_3gkusoc",
+          gmKey:      "h2j8wY6XsOovv7BrN",
+          gmEmailTo:  "azzam.moo10@gmail.com",
+          gmEnabled:  true // Activé pour tests de production
+        };
+
+
+
+        async function sendGmail(templateParams) {
+            if (!NOTIF_CONFIG.gmEnabled) {
+                addLog('📧 Gmail: Désactivé pour économiser le quota (Tests)', 'sys'); 
+                return false; 
+            }
+            if (!NOTIF_CONFIG.gmService || !NOTIF_CONFIG.gmKey) {
+                addLog('📧 Gmail: configuration manquante', 'err'); return false;
+            }
+            try {
+                if (typeof emailjs === 'undefined') { addLog('📧 EmailJS non chargé', 'err'); return false; }
+                emailjs.init(NOTIF_CONFIG.gmKey);
+                await emailjs.send(NOTIF_CONFIG.gmService, NOTIF_CONFIG.gmTemplate, {
+                    ...templateParams,
+                    to_email: NOTIF_CONFIG.gmEmailTo
+                });
+                addLog('📧 Gmail envoyé → ' + NOTIF_CONFIG.gmEmailTo, 'ok');
+                return true;
+            } catch (e) {
+                addLog('📧 Gmail erreur: ' + (e.text || e.message || JSON.stringify(e)), 'err');
+                return false;
+            }
+        }
+
+        // Build rich template params matching every {{variable}} in emailTemplate.html
+        function buildEmailParams(eventType, slot) {
+            const now = new Date();
+            const p = n => String(n).padStart(2, '0');
+            const dateStr = `${p(now.getDate())}/${p(now.getMonth() + 1)}/${now.getFullYear()}`;
+            const timeStr = `${p(now.getHours())}:${p(now.getMinutes())}`;
+
+            // Per-event styling map
+            const styles = {
+                alarm_triggered: {
+                    title: 'Heure du Médicament',
+                    status_short: 'ALARME',
+                    icon_bg: 'linear-gradient(135deg,#F59E0B,#D97706)',
+                    alert_bg: '#FFFBEB',
+                    alert_border: '#F59E0B',
+                    alert_text: '#92400E',
+                    status_bg: '#FEF3C7',
+                    status_color: '#92400E',
+                    status: 'ALARME',
+                    note: 'Veuillez prendre votre médicament maintenant. Le distributeur attend votre action.'
+                },
+                pill_taken: {
+                    title: 'Pilule Prise',
+                    status_short: 'PRISE',
+                    icon_bg: 'linear-gradient(135deg,#10B981,#059669)',
+                    alert_bg: '#F0FDF4',
+                    alert_border: '#10B981',
+                    alert_text: '#065F46',
+                    status_bg: '#DCFCE7',
+                    status_color: '#065F46',
+                    status: 'PRISE',
+                    note: 'La dose a été correctement retirée du compartiment. Bonne observance thérapeutique !'
+                },
+                pill_missed: {
+                    title: 'Dose Manquée — URGENT',
+                    status_short: 'OMISE',
+                    icon_bg: 'linear-gradient(135deg,#EF4444,#DC2626)',
+                    alert_bg: '#FFF5F5',
+                    alert_border: '#EF4444',
+                    alert_text: '#7F1D1D',
+                    status_bg: '#FEE2E2',
+                    status_color: '#7F1D1D',
+                    status: 'MANQUÉE',
+                    note: 'URGENT : La pilule n\'a pas été retirée dans le délai imparti (10 s). Veuillez contacter le patient.'
+                },
+                motor_ok: {
+                    title: 'Test Système Réussi',
+                    status_short: 'TEST',
+                    icon_bg: 'linear-gradient(135deg,#4F8EF7,#6C63FF)',
+                    alert_bg: '#EFF6FF',
+                    alert_border: '#4F8EF7',
+                    alert_text: '#1E3A8A',
+                    status_bg: '#DBEAFE',
+                    status_color: '#1E3A8A',
+                    status: 'TEST OK',
+                    note: 'Le test moteur a été effectué avec succès. Toutes les fonctions matérielles sont opérationnelles.'
+                }
+            };
+
+            const ev = styles[eventType] || {
+                title: eventType,
+                status_short: eventType.toUpperCase().substring(0, 6),
+                icon_bg: 'linear-gradient(135deg,#6C63FF,#4F8EF7)',
+                alert_bg: '#EFF6FF', alert_border: '#4F8EF7', alert_text: '#1E3A8A',
+                status_bg: '#DBEAFE', status_color: '#1E3A8A',
+                status: eventType.toUpperCase(), note: ''
+            };
+
+            return {
+                title: ev.title,
+                status_short: ev.status_short,
+                icon_bg: ev.icon_bg,
+                alert_bg: ev.alert_bg,
+                alert_border: ev.alert_border,
+                alert_text: ev.alert_text,
+                status_bg: ev.status_bg,
+                status_color: ev.status_color,
+                status: ev.status,
+                message: buildMessage(eventType, slot),
+                date: dateStr,
+                time: timeStr,
+                compartiment: slot !== null && slot !== undefined ? `Case ${slot} / 5` : '—',
+                patient_name: 'Patient MedSmart',
+                note: ev.note
+            };
+        }
+
+        async function sendNotification(eventType, isTest, slot, itemEl) {
+            const params = buildEmailParams(eventType, slot);
+            const gmBadge = itemEl ? itemEl.querySelector('[title="Gmail"]') : null;
+            
+            if (eventType !== 'motor_ok') {
+                const gmOk = await sendGmail(params);
+                if (gmBadge) gmBadge.classList.add(gmOk ? 'sent' : 'failed');
+            } else {
+                if (gmBadge) gmBadge.style.opacity = '0.3';
+            }
+        }
+
+
+
+        function testEmail() {
+            const params = buildEmailParams('motor_ok', null);
+            params.message = '🔧 MedSmart — Test Email OK !';
+            sendGmail(params).then(ok => {
+                if (!ok) addLog('📧 Vérifiez NOTIF_CONFIG dans le script (Service ID, Template ID, Public Key)', 'err');
+            });
+        }
+    </script>
+</body>
+
+</html>
